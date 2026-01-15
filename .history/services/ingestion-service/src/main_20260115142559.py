@@ -42,11 +42,11 @@ def getTodaysMeteors():
                 details = requests.get(details_url).json()
 
                 rock: AsteroidPayload = {
-                    "id": asteroid_id,
-                    "asteroid": a["name"],
-                    "diameter_km": a["estimated_diameter"]["kilometers"]["estimated_diameter_max"],
-                    "velocity_kph": float(a["close_approach_data"][0]["relative_velocity"]["kilometers_per_hour"]),
-                    "orbital_elements": details["orbital_data"]
+                    id: asteroid_id,
+                    asteroid: a["name"],
+                    diameter_km: a["estimated_diameter"]["kilometers"]["estimated_diameter_max"],
+                    velocity_kph: float(a["close_approach_data"][0]["relative_velocity"]["kilometers_per_hour"]),
+                    orbital_elements: details["orbital_data"]
                 }
                 rocks.append(rock)
                 print(f"Processed: {rock['asteroid']}")
