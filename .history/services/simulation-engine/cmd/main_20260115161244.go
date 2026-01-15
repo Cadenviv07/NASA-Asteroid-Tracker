@@ -47,7 +47,7 @@ QUEUE_URL = "https://sqs.us-east-2.amazonaws.com/574070665369/asteroidBelt"
 func main(){
 	ctx := context.TODO()
 	//Function either creates cfg or error
-	cfg, err := config.LoadDDefaultConfig(ctx)
+	cfg, err := config.LOADDefaultConfig(ctx)
 
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
@@ -57,31 +57,4 @@ func main(){
 
 	fmt.Println("Successfully initialized AWS SQS client.")
 
-	messages := make(chan types.Message)
-
-	for i:= 0; i < 5; i++{
-		go worker(i, sqsClient, messages, QUEUE_URL)
-	}
-
-	for{
-		//The & makes it a pointer to the memory location of the object instead of the object itself
-		receiveInput := &sqs.RecieveMessageInput{
-			MaxNumberOfMessages: 10, 
-            WaitTimeSeconds:     20, // Long Polling (Wait up to 20s for data)
-            VisibilityTimeout:   30, // Give workers 30s to process before retry
-		}
-
-		resp, err := sqsClient.ReceiveMessage(ctx, receiveInput)
-
-		if err != nil{
-			fmt.Println("Error receiving messages: ", err)
-			continue
-		}
-
-		if len(resp.Messages) > 0 {
-			for _, msg := range resp.Messages{
-				messages <- msg
-			}
-		}
-	}
 }
