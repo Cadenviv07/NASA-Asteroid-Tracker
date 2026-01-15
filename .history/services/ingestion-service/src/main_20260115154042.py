@@ -4,7 +4,6 @@ from typing import TypedDict, Dict
 import os
 from dotenv import load_dotenv
 import boto3
-import json
 
 load_dotenv()
 
@@ -57,14 +56,7 @@ def getTodaysMeteors():
                     "orbital_elements": details["orbital_data"]
                 }
                 rocks.append(rock)
-                
-                message_body = json.dumps(rock)
-                
-                sqs.send_message(
-                    Queue_url = QUEUE_URL,
-                    Message_body = message_body
-                )
-
+                sqs.send_message(rock)
                 print(f"Processed: {rock['asteroid']}")
             return rocks             
         else:
