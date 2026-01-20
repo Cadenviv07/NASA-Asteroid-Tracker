@@ -1,6 +1,8 @@
 # --- Secrets (CRITICAL) ---
 .env
 services/ingestion-service/src/.env
+services/simulation-engine/.env
+
 
 # --- Python ---
 __pycache__/

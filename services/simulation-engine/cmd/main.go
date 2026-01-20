@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"github.com/joho/godotenv"
 )
 
 // object for all meteorites
@@ -18,7 +19,28 @@ type Asteroid struct {
 	Diameter float64 `json:"diameter_km"`
 	Velocity float64 `json:"velocity_kph"`
 
-	OrbitalElements map[string]interface{} `json:"orbital_elements"`
+	OrbitalData OrbitalData `json:"orbital_elements"`
+}
+
+type OrbitalData struct {
+	// ,string takes the string json is giving and converts it into a float
+	//Shape of the orbit
+	Eccentricity  float64 `json:"eccentricity,string"`
+	SemiMajorAxis float64 `json:"semi_major_axis,string"`
+
+	//Orientation in 3d space
+	Inclination            float64 `json:"inclination,string"`
+	AscendingNodeLongitude float64 `json:"ascending_node_longitude,string"`
+	PerihelionArgument     float64 `json:"perihelion_argument,string"`
+
+	//The Position in time
+	MeanAnomaly float64 `json:"mean_anomaly,string"`
+	MeanMotion  float64 `json:"mean_motion,string"`
+	// Epoch is usually a Julian Date (number), so we can treat it as a float
+	EpochOsculation float64 `json:"epoch_osculation,string"`
+
+	//Pre-calculated Risk (Good for checking math later)
+	MinimumOrbitIntersection string `json:"minimum_orbit_intersection"`
 }
 
 // process everything that comes through sqs pipeline
@@ -42,6 +64,13 @@ func worker(id int, client *sqs.Client, pipe <-chan types.Message, queueURL stri
 const QueueUrl = "https://sqs.us-east-2.amazonaws.com/574070665369/asteroidBelt"
 
 func main() {
+
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Println("Error loading .env file. Ensure it exists in the same directory as main.go")
+	}
+
 	ctx := context.TODO()
 	//Function either creates cfg or error
 	cfg, err := config.LoadDefaultConfig(ctx)
