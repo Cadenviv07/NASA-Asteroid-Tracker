@@ -2,17 +2,22 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"github.com/cva70/nasa-asteroid-tracker/simulation-engine/pkg/alerts"
 	"github.com/cva70/nasa-asteroid-tracker/simulation-engine/pkg/physics"
+	"github.com/cva70/nasa-asteroid-tracker/simulation-engine/pkg/storage"
 	"github.com/joho/godotenv"
 )
 
@@ -56,7 +61,7 @@ type OrbitalData struct {
 }
 
 // process everything that comes through sqs pipeline
-func worker(id int, client *sqs.Client, pipe <-chan types.Message, queueURL string) {
+func worker(id int, snsClient *sns.Client, db *sql.DB, client *sqs.Client, pipe <-chan types.Message, queueURL string, snsTopicArn string) {
 	for message := range pipe {
 
 		fmt.Printf("Worker %d: Processing %s\n", id, *message.Body)
@@ -91,7 +96,12 @@ func worker(id int, client *sqs.Client, pipe <-chan types.Message, queueURL stri
 			distanceKm := distance * 149600000
 
 			if distanceKm < 6000 {
-				fmt.Println("Collision Detected On: ", startDate)
+				fmt.Printf("COLLISION DETECTED! Date: %f\n", startDate)
+
+				alerts.SendCollisionAlert(snsClient, snsTopicArn, asteroidData.Name, startDate, distanceKm)
+
+				storage.SaveTrajectory(db, asteroidData.ID, asteroidData.Name, distanceKm, startDate, true)
+
 				break
 			}
 
@@ -112,7 +122,9 @@ func worker(id int, client *sqs.Client, pipe <-chan types.Message, queueURL stri
 				break
 			}
 		}
-		fmt.Println("Missed By: ", minDistance)
+		if minDistance >= 6000 {
+			storage.SaveTrajectory(db, asteroidData.ID, asteroidData.Name, minDistance, 0.0, false)
+		}
 
 		_, er := client.DeleteMessage(context.TODO(), &sqs.DeleteMessageInput{
 			QueueUrl: &queueURL,
@@ -146,12 +158,19 @@ func main() {
 
 	sqsClient := sqs.NewFromConfig(cfg)
 
+	snsClient := sns.NewFromConfig(cfg)
+	snsTopicArn := os.Getenv("AWS_SNS_TOPIC_ARN")
+
+	dbConnString := os.Getenv("DB_CONNECTION_STRING")
+	db := storage.InitializeDB(dbConnString)
+	defer db.Close()
+
 	fmt.Println("Successfully initialized AWS SQS client.")
 	//Create channel
 	messages := make(chan types.Message)
 
 	for i := 0; i < 5; i++ {
-		go worker(i, sqsClient, messages, QueueUrl)
+		go worker(i, snsClient, db, sqsClient, messages, QueueUrl, snsTopicArn)
 	}
 
 	for {
