@@ -5,6 +5,19 @@ import (
 	"time"
 )
 
+type Vector3 struct {
+	X, Y, Z float64
+}
+
+type OrbitalElements struct {
+	SemiMajorAxis float64
+	Eccentricity  float64
+	Inclination   float64
+	AscendingNode float64
+	Perihelion    float64
+	MeanAnomaly   float64
+}
+
 func TimetoJulian(t time.Time) float64 {
 	t = t.UTC()
 
@@ -29,21 +42,23 @@ func TimetoJulian(t time.Time) float64 {
 }
 
 // Caculates mean anomoly which tells you what precentage of the orbit you have passed through
-func positionInOrbit(meanMotion float64, meanAnomoly float64, epochDate float64) float64 {
+func PositionInOrbit(meanMotion float64, meanAnomoly float64, epochDate float64) float64 {
 	currentTime := TimetoJulian(time.Now())
 	deltaT := currentTime - epochDate
 	M := meanMotion*deltaT + meanAnomoly
 
 	M = math.Mod(M, 360)
 
-	if M < 360 {
+	if M < 0 {
 		M += 360
 	}
 
 	return M
 }
 
-func calculateEccentricAnomaly(M float64, e float64) float64 {
+func CalculateEccentricAnomaly(M_deg float64, e float64) float64 {
+	rad := math.Pi / 180.0
+	M := M_deg * rad
 	E := M
 
 	for {
@@ -63,7 +78,7 @@ func calculateEccentricAnomaly(M float64, e float64) float64 {
 	return E
 }
 
-func getPlaneCoordinates(E float64, e float64, a float64) (float64, float64) {
+func GetPlaneCoordinates(E float64, e float64, a float64) (float64, float64) {
 	//Calculate the coordinate of the eclipse shifted so the sun is at the center of the eclipse
 	x := a * (math.Cos(E) - e)
 
@@ -73,7 +88,7 @@ func getPlaneCoordinates(E float64, e float64, a float64) (float64, float64) {
 	return x, y
 }
 
-func rotatePlane(x float64, y float64, i float64, omega float64, w float64) Vector3 {
+func RotatePlane(x float64, y float64, i float64, omega float64, w float64) Vector3 {
 
 	rad := math.Pi / 180.0
 	inclination := i * rad // Inclinatino of plane
@@ -82,7 +97,7 @@ func rotatePlane(x float64, y float64, i float64, omega float64, w float64) Vect
 
 	//Multiply current plane by three different rotaiton matrixes
 
-	cosO := math.Cos(inclination)
+	cosO := math.Cos(Node)
 	sinO := math.Sin(Node)
 	cosw := math.Cos(PA)
 	sinw := math.Sin(PA)
@@ -116,11 +131,12 @@ func getEarthsPosition(currentJD float64) Vector3 {
 
 	M := earth.MeanAnomaly + (EarthMeanMotion * timePassed)
 	M = math.Mod(M, 360.0)
+	M = M * math.Pi / 180.0
 
-	E := calculateEccentricAnomaly(toRadians(M), earth.Eccentricity)
+	E := CalculateEccentricAnomaly(M, earth.Eccentricity)
 
-	xPlane, yPlane := getPlaneCoordinates(E, earth.Eccentricity, earth.SemiMajorAxis)
+	xPlane, yPlane := GetPlaneCoordinates(E, earth.Eccentricity, earth.SemiMajorAxis)
 
-	return rotatePlane(xPlane, yPlane, earth.Inclination, earth.AscendingNode, earth.Perihelion)
+	return RotatePlane(xPlane, yPlane, earth.Inclination, earth.AscendingNode, earth.Perihelion)
 
 }
