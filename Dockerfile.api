@@ -4,13 +4,13 @@ FROM golang:1.23 as builder
 WORKDIR /app
 
 COPY go.work .
-COPY simulation-engine/go.mod simulation-engine/go.sum ./simulation-engine/
-COPY api-gateway/go.mod api-gateway/go.sum ./api-gateway/
+COPY services/simulation-engine/go.mod simulation-engine/go.sum ./simulation-engine/
+COPY services/api-gateway/go.mod api-gateway/go.sum ./api-gateway/
 
 RUN go mod download
 
-COPY simulation-engine ./simulation-engine
-COPY api-gateway ./api-gateway
+COPY services/simulation-engine ./simulation-engine
+COPY services/api-gateway ./api-gateway
 
 # Build the API Gateway
 RUN CGO_ENABLED=0 GOOS=linux go build -o asteroid-api ./api-gateway/cmd/main.go
