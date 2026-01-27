@@ -1,0 +1,22 @@
+FROM golang:1.23 as builder
+
+WORKDIR /app
+
+COPY go.work .
+COPY simulation-engine/go.mod simulation-engine/go.sum ./simulation-engine/
+COPY api-gateway/go.mod api-gateway/go.sum ./api-gateway/
+
+RUN go mod download
+
+COPY simulation-engine ./simulation-engine
+COPY api-gateway ./api-gateway
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o asteroid-engine ./simulation-engine/cmd/main.go
+
+FROM alpine:latest
+WORKDIR /root/
+
+COPY --from=builder /app/asteroid-engine .
+
+CMD ["./asteroid-engine"]
+

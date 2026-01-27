@@ -1,0 +1,29 @@
+# Stage 1: The Chef
+FROM golang:1.23 as builder
+
+WORKDIR /app
+
+COPY go.work .
+COPY simulation-engine/go.mod simulation-engine/go.sum ./simulation-engine/
+COPY api-gateway/go.mod api-gateway/go.sum ./api-gateway/
+
+RUN go mod download
+
+COPY simulation-engine ./simulation-engine
+COPY api-gateway ./api-gateway
+
+# Build the API Gateway
+RUN CGO_ENABLED=0 GOOS=linux go build -o asteroid-api ./api-gateway/cmd/main.go
+
+# Stage 2: The Waiter
+FROM alpine:latest
+WORKDIR /root/
+
+COPY --from=builder /app/asteroid-api .
+COPY api-gateway/.env .
+
+# Expose the port so the outside world can see it
+EXPOSE 8080
+
+CMD ["./asteroid-api"]
+
