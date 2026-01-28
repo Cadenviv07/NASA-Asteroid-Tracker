@@ -1,12 +1,11 @@
-
-FROM golang:1.23 as builder
+FROM golang:1.25 as builder
 
 WORKDIR /app
 
-# Copy the go.work file from the root
+# Copy the go.work file
 COPY go.work .
 
-# Copy go.mod and go.sum files (Shared context)
+# Copy go.mod and go.sum files
 COPY services/simulation-engine/go.mod services/simulation-engine/go.sum ./services/simulation-engine/
 COPY services/api-gateway/go.mod services/api-gateway/go.sum ./services/api-gateway/
 
@@ -17,10 +16,10 @@ RUN go mod download
 COPY services/simulation-engine ./services/simulation-engine
 COPY services/api-gateway ./services/api-gateway
 
-# Build the API Gateway
-RUN CGO_ENABLED=0 GOOS=linux go build -o asteroid-api ./services/api-gateway/cmd/main.go
+# FIX: Removed "cmd/" from the path
+RUN CGO_ENABLED=0 GOOS=linux go build -o asteroid-api ./services/api-gateway/main.go
 
-
+# Stage 2: The Runner
 FROM alpine:latest
 WORKDIR /root/
 

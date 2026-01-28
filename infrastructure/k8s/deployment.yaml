@@ -1,0 +1,122 @@
+#POSTGRES DATABASE
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "Silksong"
+        - name: POSTGRES_DB
+          value: "nasa_asteroids"
+
+---
+#PYTHON API
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asteroid-ingestion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asteroid-ingestion
+  template:
+    metadata:
+      labels:
+        app: asteroid-ingestion
+    spec:
+      containers:
+      - name: asteroid-ingestion
+        image: asteroid-ingestion:v1  
+        imagePullPolicy: Never       
+        env:
+        - name: DB_CONNECTION_STRING
+          value: "postgres://postgres:Silksong@postgres-service:5432/nasa_asteroids?sslmode=disable"
+        - name: NASA_API_KEY
+          value: "DEMO_KEY"           
+
+---
+#ENGINE
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asteroid-simulation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asteroid-simulation
+  template:
+    metadata:
+      labels:
+        app: asteroid-simulation
+    spec:
+      containers:
+      - name: asteroid-simulation
+        image: asteroid-engine:v1     
+        imagePullPolicy: Never
+        env:
+        - name: DB_CONNECTION_STRING
+          value: "postgres://postgres:Silksong@postgres-service:5432/nasa_asteroids?sslmode=disable"
+
+#API GATEWAY
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asteroid-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asteroid-api
+  template:
+    metadata:
+      labels:
+        app: asteroid-api
+    spec:
+      containers:
+      - name: asteroid-api
+        image: asteroid-api:v1        # The image already built
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_CONNECTION_STRING
+          value: "postgres://postgres:Silksong@postgres-service:5432/nasa_asteroids?sslmode=disable"
+
+
+# Expose the API 
+apiVersion: v1
+kind: Service
+metadata:
+  name: asteroid-api-service
+spec:
+  type: NodePort
+  selector:
+    app: asteroid-api
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30000  

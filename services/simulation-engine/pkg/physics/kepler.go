@@ -42,8 +42,8 @@ func TimetoJulian(t time.Time) float64 {
 }
 
 // Caculates mean anomoly which tells you what precentage of the orbit you have passed through
-func PositionInOrbit(meanMotion float64, meanAnomoly float64, epochDate float64) float64 {
-	currentTime := TimetoJulian(time.Now())
+func PositionInOrbit(currentT, meanMotion float64, meanAnomoly float64, epochDate float64) float64 {
+	currentTime := currentT
 	deltaT := currentTime - epochDate
 	M := meanMotion*deltaT + meanAnomoly
 
@@ -113,7 +113,7 @@ func RotatePlane(x float64, y float64, i float64, omega float64, w float64) Vect
 	return Vector3{X: xf, Y: yf, Z: z}
 }
 
-func getEarthsPosition(currentJD float64) Vector3 {
+func GetEarthsPosition(currentJD float64) Vector3 {
 
 	earth := OrbitalElements{
 		SemiMajorAxis: 1.00000011,

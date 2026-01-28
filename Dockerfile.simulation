@@ -1,4 +1,5 @@
-FROM golang:1.23 as builder
+﻿# Stage 1: The Builder
+FROM golang:1.25 as builder
 
 WORKDIR /app
 
@@ -19,6 +20,7 @@ COPY services/api-gateway ./services/api-gateway
 # Build the Simulation Engine
 RUN CGO_ENABLED=0 GOOS=linux go build -o asteroid-engine ./services/simulation-engine/cmd/main.go
 
+# Stage 2: The Runner
 FROM alpine:latest
 WORKDIR /root/
 
