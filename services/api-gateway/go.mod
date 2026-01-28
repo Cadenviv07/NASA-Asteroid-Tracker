@@ -1,6 +1,6 @@
 module github.com/cva70/nasa-asteroid-tracker/api-gateway
 
-go 1.25.5
+go 1.24.0
 
 require (
     github.com/gin-gonic/gin v1.9.1
