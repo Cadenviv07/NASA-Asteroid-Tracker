@@ -28,8 +28,7 @@ graph LR
     User((User)) -->|HTTP Request| F[API Gateway]
     F -->|Route| G(API Service <br/> Go)
     G -->|Query| D
-
----
+```
 
 | Database Verification |
 | --------------------- | 
@@ -43,3 +42,21 @@ graph LR
 | --------------------- | 
 <img width="1394" height="157" alt="image" src="https://github.com/user-attachments/assets/a7e70a87-1068-4c70-8224-7532d76da107" />
 
+## 🛠️ Installation & Setup
+
+> **Note:** To run this project locally, you will need a NASA API Key and AWS Credentials (SQS access).
+
+### 1. Prerequisites
+* Docker Desktop & Kubernetes
+* Go 1.21+ & Python 3.9+
+* `kubectl` CLI tool
+
+### 2. Environment Configuration
+Create a `.env` file in the `services/ingestion-service` directory:
+```ini
+NASA_API_KEY=YOUR_KEY_HERE
+AWS_ACCESS_KEY_ID=YOUR_AWS_KEY
+AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET
+DB_CONNECTION_STRING=postgres://...
+# Deploy all microservices to Kubernetes
+kubectl apply -f infrastructure/k8s/
