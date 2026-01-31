@@ -48,7 +48,7 @@ graph LR
 
 ### 1. Prerequisites
 * Docker Desktop & Kubernetes
-* Go 1.21+ & Python 3.9+
+* Go 1.40.0+ & Python 3.9+
 * `kubectl` CLI tool
 
 ### 2. Environment Configuration
@@ -60,3 +60,4 @@ AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET
 DB_CONNECTION_STRING=postgres://...
 # Deploy all microservices to Kubernetes
 kubectl apply -f infrastructure/k8s/
+
