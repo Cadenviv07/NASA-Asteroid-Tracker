@@ -39,4 +39,7 @@ graph LR
 | --------------------- | 
 <img width="1477" height="379" alt="Simulation Proof" src="https://github.com/user-attachments/assets/dc3ad412-86eb-449d-b329-24cf7a2da793" />
 
+| API-Gateway           |
+| --------------------- | 
+<img width="1394" height="157" alt="image" src="https://github.com/user-attachments/assets/a7e70a87-1068-4c70-8224-7532d76da107" />
 
