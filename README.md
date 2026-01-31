@@ -29,6 +29,7 @@ graph LR
     F -->|Route| G(API Service <br/> Go)
     G -->|Query| D
 
+---
 
 | Database Verification |
 | --------------------- | 
@@ -37,4 +38,5 @@ graph LR
 | Simulation Logs       |
 | --------------------- | 
 <img width="1477" height="379" alt="Simulation Proof" src="https://github.com/user-attachments/assets/dc3ad412-86eb-449d-b329-24cf7a2da793" />
+
 
